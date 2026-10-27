@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bleach Complete Marathon Planner & Master Watch Order</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            bleach: {
+              black: '#090a0f',
+              surface: '#11131a',
+              card: '#161922',
+              cardHover: '#1c202c',
+              border: '#232838',
+              borderLight: '#32394e',
+              orange: '#f97316',
+              orangeDark: '#ea580c',
+              reiatsu: '#06b6d4',
+              purple: '#a855f7',
+              steel: '#94a3b8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: #090a0f; }
+    ::-webkit-scrollbar-thumb { background: #232838; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #f97316; }
+
+    /* Drag & Drop Visuals */
+    .dragging-card {
+      opacity: 0.35;
+      transform: scale(0.98);
+      border: 2px dashed #f97316 !important;
+      background: #11131a !important;
+    }
+    .drag-over-card {
+      border-top: 3px solid #06b6d4 !important;
+    }
+  </style>
+</head>
+<body class="bg-bleach-black text-slate-100 min-h-screen font-sans antialiased selection:bg-orange-500 selection:text-white pb-20">
+
+  <!-- Main Wrap -->
+  <div class="max-w-6xl mx-auto px-3 sm:px-6 pt-6">
+
+    <!-- Top Navigation / Header -->
+    <header class="border-b border-bleach-border pb-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        <!-- Logo and Title -->
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="inline-block w-2.5 h-8 bg-orange-500 rounded-sm shadow-[0_0_12px_rgba(249,115,22,0.6)]"></span>
+            <span class="inline-block w-1.5 h-8 bg-cyan-400 rounded-sm"></span>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase ml-1">
+              Bleach <span class="text-orange-500">100% Marathon</span> Planner
+            </h1>
+            <span class="bg-bleach-border text-cyan-400 text-[11px] px-2.5 py-0.5 rounded-full font-mono font-semibold border border-cyan-500/20">
+              Complete Saga
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1.5">
+            Original 366 Episodes • 4 Feature Films • 2 Jump Festa OVAs • Thousand-Year Blood War
+          </p>
+        </div>
+
+        <!-- Sync, Add & Utility Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="addCustomBtn" class="flex items-center gap-1.5 px-3 py-1.5 bg-bleach-card hover:bg-bleach-cardHover text-slate-200 text-xs sm:text-sm font-medium rounded-lg border border-bleach-border transition shadow-sm">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-orange-400"></i> Add Custom
+          </button>
+          <button id="exportBtn" class="flex items-center gap-1.5 px-3 py-1.5 bg-bleach-card hover:bg-bleach-cardHover text-slate-200 text-xs sm:text-sm font-medium rounded-lg border border-bleach-border transition shadow-sm">
+            <i data-lucide="download" class="w-4 h-4 text-cyan-400"></i> Export
+          </button>
+          <label class="flex items-center gap-1.5 px-3 py-1.5 bg-bleach-card hover:bg-bleach-cardHover text-slate-200 text-xs sm:text-sm font-medium rounded-lg border border-bleach-border transition cursor-pointer shadow-sm">
+            <i data-lucide="upload" class="w-4 h-4 text-emerald-400"></i> Import
+            <input type="file" id="importInput" accept=".json" class="hidden">
+          </label>
+          <button id="resetBtn" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-950/30 hover:bg-red-900/50 text-red-300 text-xs sm:text-sm font-medium rounded-lg border border-red-800/40 transition">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Marathon Dashboard Card -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 bg-bleach-card border border-bleach-border rounded-xl p-4 sm:p-5 shadow-lg relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-36 h-36 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Progress Bar & Ratio -->
+        <div class="md:col-span-2 space-y-2">
+          <div class="flex justify-between items-baseline">
+            <span class="text-xs uppercase font-bold tracking-wider text-slate-400">Total Marathon Completion</span>
+            <span id="progressPercent" class="text-xl font-black text-orange-400 font-mono">0%</span>
+          </div>
+          <div class="w-full h-3 bg-bleach-black rounded-full overflow-hidden border border-bleach-border">
+            <div id="progressBar" class="h-full bg-gradient-to-r from-orange-500 via-amber-400 to-cyan-400 transition-all duration-300 rounded-full" style="width: 0%;"></div>
+          </div>
+          <div class="flex justify-between text-xs text-slate-400">
+            <span><strong id="watchedEpCount" class="text-white font-mono">0</strong> of <strong id="totalEpCount" class="text-white font-mono">424</strong> units watched</span>
+            <span><span id="remainingEpCount" class="text-slate-300 font-mono">424</span> units left</span>
+          </div>
+        </div>
+
+        <!-- Pace Slider & Watch Hours -->
+        <div class="space-y-1">
+          <div class="flex justify-between items-center text-xs">
+            <span class="font-semibold text-slate-300">Daily Pace Target:</span>
+            <span class="text-orange-400 font-mono font-bold"><span id="paceValue">5</span> eps/day</span>
+          </div>
+          <input type="range" id="paceSlider" min="1" max="15" value="5" class="w-full accent-orange-500 cursor-pointer">
+          <div class="text-[11px] text-slate-400 pt-0.5">
+            Approx. <span id="dailyHours" class="text-slate-200 font-semibold font-mono">1.9</span> hrs / day
+          </div>
+        </div>
+
+        <!-- Dynamic Days Left Box -->
+        <div class="flex flex-col justify-center bg-bleach-surface/80 border border-bleach-border rounded-lg p-3 text-center">
+          <span class="text-[11px] uppercase font-bold tracking-wider text-slate-400">Estimated Finish</span>
+          <div class="text-xl sm:text-2xl font-black text-cyan-400 mt-0.5 font-mono" id="estDaysLeft">
+            85 Days
+          </div>
+          <span class="text-[10px] text-slate-500 mt-0.5" id="estTargetDate">Target: Calculating...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Preset Toolbars and Filtering -->
+    <div class="space-y-4 mb-6">
+      
+      <!-- Primary Preset Bar -->
+      <div class="bg-bleach-card border border-bleach-border p-3 sm:p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center gap-2">
+          <i data-lucide="layers" class="w-4 h-4 text-orange-400"></i>
+          <span class="text-xs sm:text-sm font-bold text-slate-200">Watch Order Preset:</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Featured Suggested Chronology Button -->
+          <button data-preset="suggested" class="preset-btn px-3 py-1.5 text-xs font-bold rounded-lg bg-gradient-to-r from-orange-600 to-amber-600 text-white shadow-md hover:from-orange-500 hover:to-amber-500 transition active:scale-95 flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Suggested Chronology (Recommended)
+          </button>
+          <button data-preset="canon-first" class="preset-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-bleach-surface hover:bg-slate-800 border border-bleach-border text-slate-300 transition active:scale-95">
+            Canon First (Pure Story)
+          </button>
+          <button data-preset="broadcast" class="preset-btn px-3 py-1.5 text-xs font-medium rounded-lg bg-bleach-surface hover:bg-slate-800 border border-bleach-border text-slate-300 transition active:scale-95">
+            TV Broadcast Air Order
+          </button>
+        </div>
+      </div>
+
+      <!-- Categories & Search Bar -->
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <!-- Category Filters -->
+        <div class="flex flex-wrap items-center gap-1.5" id="categoryFilterContainer">
+          <button data-filter="all" class="filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white shadow-sm transition">
+            All (<span id="count-all">0</span>)
+          </button>
+          <button data-filter="Canon" class="filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-bleach-card hover:bg-bleach-cardHover text-slate-300 border border-bleach-border transition">
+            Canon Arcs (<span id="count-canon">0</span>)
+          </button>
+          <button data-filter="Filler" class="filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-bleach-card hover:bg-bleach-cardHover text-slate-300 border border-bleach-border transition">
+            Filler Arcs (<span id="count-filler">0</span>)
+          </button>
+          <button data-filter="Movie" class="filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-bleach-card hover:bg-bleach-cardHover text-slate-300 border border-bleach-border transition">
+            Movies (<span id="count-movie">0</span>)
+          </button>
+          <button data-filter="Special" class="filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-bleach-card hover:bg-bleach-cardHover text-slate-300 border border-bleach-border transition">
+            OVAs / Specials (<span id="count-special">0</span>)
+          </button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative min-w-[240px]">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+          <input type="text" id="searchInput" placeholder="Search arc, episode, movie..." class="w-full bg-bleach-card text-xs sm:text-sm pl-9 pr-8 py-2 rounded-lg border border-bleach-border focus:border-orange-500 focus:outline-none placeholder-slate-500 transition">
+          <button id="clearSearch" class="hidden absolute right-2.5 top-2.5 text-slate-400 hover:text-white">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active Watch Order Card List -->
+    <main>
+      <div class="flex items-center justify-between text-xs text-slate-400 mb-2.5 px-1 font-medium">
+        <span><i data-lucide="grip-vertical" class="w-3.5 h-3.5 inline text-slate-500"></i> Drag or use chevrons to fine-tune sequence.</span>
+        <span>Click an entry to view episode checkboxes & notes</span>
+      </div>
+
+      <div id="marathonList" class="space-y-2.5">
+        <!-- Rendered via JavaScript -->
+      </div>
+
+      <div id="emptySearchNotice" class="hidden py-16 text-center bg-bleach-card border border-bleach-border rounded-xl">
+        <i data-lucide="search-x" class="w-10 h-10 mx-auto text-slate-500 mb-2"></i>
+        <p class="text-sm text-slate-300 font-semibold">No matches found for your filter or query.</p>
+        <p class="text-xs text-slate-500 mt-1">Try clearing filters or search keywords.</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- Episode Drawer (Modal Checklist) -->
+  <div id="drawerOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden transition-opacity">
+    <div class="fixed inset-y-0 right-0 w-full max-w-lg bg-bleach-surface border-l border-bleach-border shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300" id="drawerPanel">
+      
+      <!-- Drawer Header -->
+      <div class="p-5 border-b border-bleach-border flex items-start justify-between bg-bleach-card">
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="drawerBadge" class="text-[10px] font-bold px-2 py-0.5 rounded border"></span>
+            <span id="drawerEpisodesCount" class="text-xs text-slate-400 font-mono"></span>
+            <span id="drawerEstDuration" class="text-[11px] text-cyan-400 font-mono"></span>
+          </div>
+          <h2 id="drawerTitle" class="text-lg font-bold text-white mt-1">Arc Title</h2>
+          <p id="drawerEpisodesRange" class="text-xs text-slate-400"></p>
+        </div>
+        <button id="closeDrawer" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Quick Action Toolbar -->
+      <div class="px-5 py-3 bg-bleach-black border-b border-bleach-border flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <button id="markAllWatched" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+            Check All
+          </button>
+          <button id="markAllUnwatched" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 transition">
+            Uncheck All
+          </button>
+        </div>
+        <span id="drawerCompletedRatio" class="font-mono text-orange-400 font-semibold">0 / 0</span>
+      </div>
+
+      <!-- Drawer Body Content -->
+      <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        <!-- Arc Synopsis -->
+        <div class="bg-bleach-card border border-bleach-border rounded-lg p-3">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">Arc Synopsis & Marathon Placement</span>
+          <p id="drawerDescription" class="text-xs text-slate-300 leading-relaxed"></p>
+        </div>
+
+        <!-- Personal Notes Field -->
+        <div class="space-y-1">
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Personal Notes / Highlights</label>
+          <textarea id="drawerUserNote" rows="2" placeholder="Key fights, bankai reveals, timestamps..." class="w-full bg-bleach-black text-xs text-slate-200 p-2.5 rounded-lg border border-bleach-border focus:border-orange-500 focus:outline-none resize-none"></textarea>
+        </div>
+
+        <!-- Granular Checkboxes -->
+        <div>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-2">Episode Checkpoints</span>
+          <div id="drawerChecklist" class="space-y-1.5 max-h-[350px] overflow-y-auto pr-1">
+            <!-- Checkbox rows rendered dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="p-4 border-t border-bleach-border bg-bleach-card flex justify-end">
+        <button id="drawerSaveClose" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-semibold rounded-lg transition shadow">
+          Done & Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Item Modal -->
+  <div id="customModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-bleach-card border border-bleach-border rounded-xl p-5 w-full max-w-md shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-bleach-border pb-3">
+        <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-orange-400"></i> Add Custom Marathon Entry
+        </h3>
+        <button id="closeCustomModal" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Title</label>
+          <input type="text" id="customTitle" placeholder="e.g. Turn Back The Pendulum Extended Rewatch" class="w-full bg-bleach-black text-slate-200 p-2.5 rounded-lg border border-bleach-border focus:border-orange-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">Category</label>
+            <select id="customCategory" class="w-full bg-bleach-black text-slate-200 p-2.5 rounded-lg border border-bleach-border focus:border-orange-500 focus:outline-none">
+              <option value="Canon">Canon</option>
+              <option value="Filler">Filler</option>
+              <option value="Movie">Movie</option>
+              <option value="Special">Special / OVA</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-semibold mb-1">Number of Episodes / Units</label>
+            <input type="number" id="customEpCount" min="1" max="150" value="1" class="w-full bg-bleach-black text-slate-200 p-2.5 rounded-lg border border-bleach-border focus:border-orange-500 focus:outline-none font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-semibold mb-1">Description / Notes</label>
+          <textarea id="customDesc" rows="2" placeholder="Custom pacing notes..." class="w-full bg-bleach-black text-slate-200 p-2.5 rounded-lg border border-bleach-border focus:border-orange-500 focus:outline-none resize-none"></textarea>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-bleach-border">
+        <button id="cancelCustomBtn" class="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs hover:bg-slate-700">Cancel</button>
+        <button id="saveCustomBtn" class="px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-semibold">Add Entry</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Feedback -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 border border-slate-700 text-slate-200 px-4 py-2.5 rounded-xl text-xs font-medium shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50 pointer-events-none">
+    <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toastMessage">Saved</span>
+  </div>
+
+  <!-- Script Logic -->
+  <script>
+    /**
+     * Exact 30-Unit Suggested Marathon Chronology Catalog
+     * Fully structured so that each entry has:
+     * - suggestedOrder: 1 to 30
+     * - canonFirstOrder: pure canon first, followed by fillers and movies
+     * - broadcastOrder: TV air chronology
+     * - explicit episode ranges and unit counts
+     */
+    const MASTER_BLEACH_CHRONOLOGY = [
+      {
+        id: "item_01",
+        title: "Substitute Shinigami Arc (Ep 1–7)",
+        epRange: "Episodes 1 – 7",
+        startEp: 1,
+        endEp: 7,
+        totalEpisodes: 7,
+        category: "Canon",
+        description: "Ichigo Kurosaki meets Rukia Kuchiki, receives Shinigami powers, and defends Karakura Town.",
+        suggestedOrder: 1,
+        canonFirstOrder: 1,
+        broadcastOrder: 1
+      },
+      {
+        id: "item_02",
+        title: "Jump Festa 2004: Memories in the Rain (OVA 1)",
+        epRange: "Special OVA",
+        startEp: 1,
+        endEp: 1,
+        totalEpisodes: 1,
+        category: "Special",
+        description: "Extended director's version covering Masaki Kurosaki's sacrifice and the battle against Grand Fisher.",
+        suggestedOrder: 2,
+        canonFirstOrder: 25,
+        broadcastOrder: 2
+      },
+      {
+        id: "item_03",
+        title: "Soul Society: The Sneak Entry Arc (Ep 8–50)",
+        epRange: "Episodes 8 – 50",
+        startEp: 8,
+        endEp: 50,
+        totalEpisodes: 43,
+        category: "Canon",
+        description: "Invasion of the Seireitei to rescue Rukia; battles against Ikkaku, Renji, and Kenpachi Zaraki.",
+        suggestedOrder: 3,
+        canonFirstOrder: 2,
+        broadcastOrder: 3
+      },
+      {
+        id: "item_04",
+        title: "Jump Festa 2005: The Sealed Sword Frenzy (OVA 2)",
+        epRange: "Special OVA",
+        startEp: 1,
+        endEp: 1,
+        totalEpisodes: 1,
+        category: "Special",
+        description: "The rogue ancient Shinigami Baishin escapes into Karakura Town; Captains assist Ichigo.",
+        suggestedOrder: 4,
+        canonFirstOrder: 26,
+        broadcastOrder: 4
+      },
+      {
+        id: "item_05",
+        title: "Soul Society: The Rescue Arc (Ep 51–63)",
+        epRange: "Episodes 51 – 63",
+        startEp: 51,
+        endEp: 63,
+        totalEpisodes: 13,
+        category: "Canon",
+        description: "The Sōkyoku execution, Ichigo's Bankai duel vs Byakuya Kuchiki, and Sōsuke Aizen's grand betrayal.",
+        suggestedOrder: 5,
+        canonFirstOrder: 3,
+        broadcastOrder: 5
+      },
+      {
+        id: "item_06",
+        title: "The Bount Arc & Bount Assault on Soul Society (Ep 64–109)",
+        epRange: "Episodes 64 – 109",
+        startEp: 64,
+        endEp: 109,
+        totalEpisodes: 46,
+        category: "Filler",
+        description: "Jin Kariya leads the vampire-like Bount in an assault against the living world and Soul Society.",
+        suggestedOrder: 6,
+        canonFirstOrder: 19,
+        broadcastOrder: 6
+      },
+      {
+        id: "item_07",
+        title: "Arrancar: The Arrival Arc (Ep 110–117)",
+        epRange: "Episodes 110 – 117",
+        startEp: 110,
+        endEp: 117,
+        totalEpisodes: 8,
+        category: "Canon",
+        description: "Shinji Hirako and the Visoreds appear; Ulquiorra and Yammy descend upon Karakura Town.",
+        suggestedOrder: 7,
+        canonFirstOrder: 4,
+        broadcastOrder: 7
+      },
+      {
+        id: "item_08",
+        title: "Movie 1: Memories of Nobody",
+        epRange: "Feature Film",
+        startEp: 1,
+        endEp: 1,
+        totalEpisodes: 1,
+        category: "Movie",
+        description: "Ichigo meets the mysterious Senna; the Valley of Screams and the Dark Souls menace the universe.",
+        suggestedOrder: 8,
+        canonFirstOrder: 21,
+        broadcastOrder: 8
+      },
+      {
+        id: "item_09",
+        title: "Arrancar: The Sneak Entry / Training (Ep 118–127)",
+        epRange: "Episodes 118 – 127",
+        startEp: 118,
+        endEp: 127,
+        totalEpisodes: 10,
+        category: "Canon",
+        description: "Ichigo trains with the Visored to tame his inner Hollow; Grimmjow's second Karakura raid.",
+        suggestedOrder: 9,
+        canonFirstOrder: 5,
+        broadcastOrder: 9
+      },
+      {
+        id: "item_10",
+        title: "Standoff & Training Mini-Arc (Ep 128–137)",
+        epRange: "Episodes 128 – 137",
+        startEp: 128,
+        endEp: 137,
+        totalEpisodes: 10,
+        category: "Filler",
+        description: "Hitsugaya's advance team and Karakura defenses undergo special combat trials.",
+        suggestedOrder: 10,
+        canonFirstOrder: 20,
+        broadcastOrder: 10
+      },
+      {
+        id: "item_11",
+        title: "Hueco Mundo Sneak Entry (Ep 138–149)",
+        epRange: "Episodes 138 – 149",
+        startEp: 138,
+        endEp: 149,
+        totalEpisodes: 12,
+        category: "Canon",
+        description: "Orihime is taken to Las Noches; Ichigo, Chad, and Uryu enter Hueco Mundo and meet Nel.",
+        suggestedOrder: 11,
+        canonFirstOrder: 6,
+        broadcastOrder: 11
+      },
+      {
+        id: "item_12",
+        title: "Movie 2: The DiamondDust Rebellion",
+        epRange: "Feature Film",
+        startEp: 1,
+        endEp: 1,
+        totalEpisodes: 1,
+        category: "Movie",
+        description: "The King's Seal is stolen; Captain Hitsugaya is branded a traitor as his past classmate Kusaka resurfaces.",
+        suggestedOrder: 12,
+        canonFirstOrder: 22,
+        broadcastOrder: 12
+      },
+      {
+        id: "item_13",
+        title: "Arrancar: The Fierce Fight Arc (Ep 150–167)",
+        epRange: "Episodes 150 – 167",
+        startEp: 150,
+        endEp: 167,
+        totalEpisodes: 18,
+        category: "Canon",
+        description: "Battles inside Las Noches and the all-out clash between Ichigo and Grimmjow.",
+        suggestedOrder: 13,
+        canonFirstOrder: 7,
+        broadcastOrder: 13
+      },
+      {
+        id: "item_14",
+        title: "The New Captain Shūsuke Amagai (Ep 168–189)",
+        epRange: "Episodes 168 – 189",
+        startEp: 168,
+        endEp: 189,
+        totalEpisodes: 22,
+        category: "Filler",
+        description: "Squad 3 receives a new captain while the Kasōōji noble family's forbidden Bakkōtō blades threaten Seireitei.",
+        suggestedOrder: 14,
+        canonFirstOrder: 27,
+        broadcastOrder: 14
+      },
+      {
+        id: "item_15",
+        title: "Arrancar vs. Shinigami (Ep 190–205)",
+        epRange: "Episodes 190 – 205",
+        startEp: 190,
+        endEp: 205,
+        totalEpisodes: 16,
+        category: "Canon",
+        description: "Ichigo vs Nnoitra Gilga; Soul Society reinforcements (Kenpachi, Byakuya, Mayuri) enter Hueco Mundo.",
+        suggestedOrder: 15,
+        canonFirstOrder: 8,
+        broadcastOrder: 15
+      },
+      {
+        id: "item_16",
+        title: "Turn Back the Pendulum (Ep 206–212)",
+        epRange: "Episodes 206 – 212",
+        startEp: 206,
+        endEp: 212,
+        totalEpisodes: 7,
+        category: "Canon",
+        description: "Canon flashback set 110 years ago: Kisuke Urahara's captaincy, Shinji, and Aizen's Hollow experiments.",
+        suggestedOrder: 16,
+        canonFirstOrder: 9,
+        broadcastOrder: 16
+      },
+      {
+        id: "item_17",
+        title: "Karakura Superheroes Mini-Filler (Ep 213–214)",
+        epRange: "Episodes 213 – 214",
+        startEp: 213,
+        endEp: 214,
+        totalEpisodes: 2,
+        category: "Filler",
+        description: "Karakura Raizer lighthearted comedy mini-episodes before the heavy Winter War battles begin.",
+        suggestedOrder: 17,
+        canonFirstOrder: 28,
+        broadcastOrder: 17
+      },
+      {
+        id: "item_18",
+        title: "Movie 3: Fade to Black",
+        epRange: "Feature Film",
+        startEp: 1,
+        endEp: 1,
+        totalEpisodes: 1,
+        category: "Movie",
+        description: "A mysterious spiritual scythe erases Rukia and Ichigo from everyone's memories in Soul Society.",
+        suggestedOrder: 18,
+        canonFirstOrder: 23,
+        broadcastOrder: 18
+      },
+      {
+        id: "item_19",
+        title: "Arrancar: Decisive Battle of Karakura (Ep 215–229)",
+        epRange: "Episodes 215 – 229",
+        startEp: 215,
+        endEp: 229,
+        totalEpisodes: 15,
+        category: "Canon",
+        description: "The Gotei 13 Captains clash with the top three Espada: Coyote Starrk, Barragan Louisenbairn, and Tier Harribel.",
+        suggestedOrder: 19,
+        canonFirstOrder: 10,
+        broadcastOrder: 19
+      },
+      {
+        id: "item_20",
+        title: "Zanpakutō Unknown Tales & Beast Swords (Ep 230–265)",
+        epRange: "Episodes 230 – 265",
+        startEp: 230,
+        endEp: 265,
+        totalEpisodes: 36,
+        category: "Filler",
+        description: "Muramasa awakens the physical, rebellious spirits of all Soul Reaper Zanpakutō.",
+        suggestedOrder: 20,
+        canonFirstOrder: 29,
+        broadcastOrder: 20
+      },
+      {
+        id: "item_21",
+        title: "Fall of the Espada Arc (Ep 266–298)",
+        epRange: "Episodes 266 – 298",
+        startEp: 266,
+        endEp: 298,
+        totalEpisodes: 33,
+        category: "Canon",
+        description: "Ichigo vs Ulquiorra Cifer full hollow form in Hueco Mundo and the fall of the highest-ranked Espada.",
+        suggestedOrder: 21,
+        canonFirstOrder: 11,
+        broadcastOrder: 21
+      },
+      {
+        id: "item_22",
+        title: "Prologue to Hell Verse (Episode 299)",
+        epRange: "Episode 299 Special",
+        startEp: 299,
+        endEp: 299,
+        totalEpisodes: 1,
+        category: "Canon",
+        description: "Official anime prologue episode setting up the events and rules of the fourth movie.",
+        suggestedOrder: 22,
+        canonFirstOrder: 12,
+        broadcastOrder: 22
+      },
+      {
+        id: "item_23",
+        title: "Movie 4: The Hell Verse",
+        epRange: "Feature Film",
+        startEp: 1,
+        endEp: 1,
+        totalEpisodes: 1,
+        category: "Movie",
+        description: "Sinners break through the gates of Hell to kidnap Yuzu Kurosaki; features Skull-clad Ichigo.",
+        suggestedOrder: 23,
+        canonFirstOrder: 24,
+        broadcastOrder: 23
+      },
+      {
+        id: "item_24",
+        title: "Climax of the Winter War vs Aizen (Ep 300–316)",
+        epRange: "Episodes 300 – 316",
+        startEp: 300,
+        endEp: 316,
+        totalEpisodes: 17,
+        category: "Canon",
+        description: "Gin Ichimaru's betrayal, Dangai training, and the Final Getsuga Tenshō (Mugetsu) against Transcendent Aizen.",
+        suggestedOrder: 24,
+        canonFirstOrder: 13,
+        broadcastOrder: 24
+      },
+      {
+        id: "item_25",
+        title: "Gotei 13 Invading Army / Reigai Arc (Ep 317–342)",
+        epRange: "Episodes 317 – 342",
+        startEp: 317,
+        endEp: 342,
+        totalEpisodes: 26,
+        category: "Filler",
+        description: "Inaba Kageroza creates clone Reigai copies of all Captains. Widely praised for top-tier sakuga animation.",
+        suggestedOrder: 25,
+        canonFirstOrder: 30,
+        broadcastOrder: 25
+      },
+      {
+        id: "item_26",
+        title: "The Lost Agent / Fullbringer (Ep 343–366)",
+        epRange: "Episodes 343 – 366",
+        startEp: 343,
+        endEp: 366,
+        totalEpisodes: 24,
+        category: "Canon",
+        description: "Seventeen months after losing his powers, Ichigo meets Kūgo Ginjō and Xcution to master Fullbring.",
+        suggestedOrder: 26,
+        canonFirstOrder: 14,
+        broadcastOrder: 26
+      },
+      {
+        id: "item_27",
+        title: "TYBW: Part 1 – The Blood Warfare (Ep 367–379)",
+        epRange: "Episodes 367 – 379",
+        startEp: 367,
+        endEp: 379,
+        totalEpisodes: 13,
+        category: "Canon",
+        description: "Yhwach and the Quincy Wandenreich invade Soul Society; catastrophic first war casualties.",
+        suggestedOrder: 27,
+        canonFirstOrder: 15,
+        broadcastOrder: 27
+      },
+      {
+        id: "item_28",
+        title: "TYBW: Part 2 – The Separation (Ep 380–392)",
+        epRange: "Episodes 380 – 392",
+        startEp: 380,
+        endEp: 392,
+        totalEpisodes: 13,
+        category: "Canon",
+        description: "Uryu Ishida is declared successor to Yhwach; Royal Guard training; the second Quincy invasion.",
+        suggestedOrder: 28,
+        canonFirstOrder: 16,
+        broadcastOrder: 28
+      },
+      {
+        id: "item_29",
+        title: "TYBW: Part 3 – The Conflict (Ep 393–406)",
+        epRange: "Episodes 393 – 406",
+        startEp: 393,
+        endEp: 406,
+        totalEpisodes: 14,
+        category: "Canon",
+        description: "Squad Zero confronts the Schutzstaffel as Yhwach ascends into the Soul King Palace.",
+        suggestedOrder: 29,
+        canonFirstOrder: 17,
+        broadcastOrder: 29
+      },
+      {
+        id: "item_30",
+        title: "TYBW: Part 4 – The Final Part",
+        epRange: "Episodes 407+",
+        startEp: 407,
+        endEp: 418,
+        totalEpisodes: 12,
+        category: "Canon",
+        description: "The grand conclusion of the Thousand-Year Blood War and the ultimate battle for all realms.",
+        suggestedOrder: 30,
+        canonFirstOrder: 18,
+        broadcastOrder: 30
+      }
+    ];
+
+    const STORAGE_KEY = 'bleach_master_marathon_planner_v3';
+
+    // App State
+    let marathonData = [];
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let dailyPace = 5;
+    let activeDrawerId = null;
+    let draggedItemId = null;
+
+    // Initialize Data with local storage fallback
+    function initData() {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed.items) && parsed.items.length > 0) {
+            marathonData = parsed.items;
+            dailyPace = parsed.dailyPace || 5;
+            return;
+          }
+        } catch (e) {
+          console.error("Local storage read error:", e);
+        }
+      }
+
+      // Default load: The 30-Unit Suggested Master Chronology
+      marathonData = MASTER_BLEACH_CHRONOLOGY.map(item => {
+        const epList = [];
+        const count = item.totalEpisodes;
+        for (let i = 0; i < count; i++) {
+          epList.push({
+            num: (item.category === 'Movie' || item.category === 'Special') ? 1 : (item.startEp + i),
+            watched: false
+          });
+        }
+        return {
+          ...item,
+          userNotes: '',
+          isComplete: false,
+          episodesList: epList
+        };
+      });
+
+      // Ensure it starts sorted in Suggested Order
+      marathonData.sort((a, b) => a.suggestedOrder - b.suggestedOrder);
+      saveState();
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        items: marathonData,
+        dailyPace: dailyPace
+      }));
+      updateDashboard();
+    }
+
+    // Category Badging
+    function getBadgeStyle(cat) {
+      switch (cat) {
+        case 'Canon':
+          return 'bg-orange-500/15 text-orange-400 border-orange-500/30';
+        case 'Filler':
+          return 'bg-purple-500/15 text-purple-400 border-purple-500/30';
+        case 'Movie':
+          return 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30';
+        case 'Special':
+          return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+        default:
+          return 'bg-slate-700/30 text-slate-300 border-slate-600/40';
+      }
+    }
+
+    // Update Overall Marathon Stats
+    function updateDashboard() {
+      let totalEps = 0;
+      let watchedEps = 0;
+
+      marathonData.forEach(item => {
+        totalEps += item.totalEpisodes;
+        const watched = item.episodesList ? item.episodesList.filter(e => e.watched).length : (item.isComplete ? item.totalEpisodes : 0);
+        watchedEps += watched;
+      });
+
+      const remaining = Math.max(0, totalEps - watchedEps);
+      const percentage = totalEps === 0 ? 0 : Math.round((watchedEps / totalEps) * 100);
+
+      document.getElementById('progressPercent').innerText = `${percentage}%`;
+      document.getElementById('progressBar').style.width = `${percentage}%`;
+      document.getElementById('watchedEpCount').innerText = watchedEps;
+      document.getElementById('totalEpCount').innerText = totalEps;
+      document.getElementById('remainingEpCount').innerText = remaining;
+
+      // Pace calculations
+      document.getElementById('paceValue').innerText = dailyPace;
+      const hoursPerDay = ((dailyPace * 23.5) / 60).toFixed(1);
+      document.getElementById('dailyHours').innerText = hoursPerDay;
+
+      const daysNeeded = Math.ceil(remaining / dailyPace);
+      document.getElementById('estDaysLeft').innerText = remaining === 0 ? "Bankai Complete!" : `${daysNeeded} ${daysNeeded === 1 ? 'Day' : 'Days'}`;
+
+      if (remaining > 0) {
+        const finishDate = new Date();
+        finishDate.setDate(finishDate.getDate() + daysNeeded);
+        const options = { month: 'short', day: 'numeric', year: 'numeric' };
+        document.getElementById('estTargetDate').innerText = `Target: ${finishDate.toLocaleDateString(undefined, options)}`;
+      } else {
+        document.getElementById('estTargetDate').innerText = '100% Marathon Finished!';
+      }
+
+      // Category counters
+      document.getElementById('count-all').innerText = marathonData.length;
+      document.getElementById('count-canon').innerText = marathonData.filter(i => i.category === 'Canon').length;
+      document.getElementById('count-filler').innerText = marathonData.filter(i => i.category === 'Filler').length;
+      document.getElementById('count-movie').innerText = marathonData.filter(i => i.category === 'Movie').length;
+      document.getElementById('count-special').innerText = marathonData.filter(i => i.category === 'Special').length;
+    }
+
+    // Render Main List
+    function renderList() {
+      const container = document.getElementById('marathonList');
+      container.innerHTML = '';
+
+      const filtered = marathonData.filter(item => {
+        const matchesCategory = (currentFilter === 'all') || (item.category === currentFilter);
+        const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              (item.epRange && item.epRange.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                              (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+        return matchesCategory && matchesSearch;
+      });
+
+      const emptyNotice = document.getElementById('emptySearchNotice');
+      if (filtered.length === 0) {
+        emptyNotice.classList.remove('hidden');
+      } else {
+        emptyNotice.classList.add('hidden');
+      }
+
+      filtered.forEach((item) => {
+        const globalIdx = marathonData.findIndex(i => i.id === item.id);
+        const watchedCount = item.episodesList ? item.episodesList.filter(e => e.watched).length : (item.isComplete ? item.totalEpisodes : 0);
+        const isFullyWatched = watchedCount >= item.totalEpisodes;
+        const isPartial = watchedCount > 0 && !isFullyWatched;
+
+        const card = document.createElement('div');
+        card.className = `group bg-bleach-card border ${isFullyWatched ? 'border-emerald-800/40 bg-emerald-950/10' : 'border-bleach-border'} rounded-xl p-3 sm:p-4 flex items-center justify-between gap-3 transition-all duration-200 hover:border-slate-500 cursor-pointer shadow-sm`;
+        card.setAttribute('draggable', 'true');
+        card.dataset.id = item.id;
+
+        card.innerHTML = `
+          <!-- Order indicator & Mobile/Desktop Reorder Controls -->
+          <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <button class="drag-handle text-slate-500 hover:text-orange-400 cursor-grab active:cursor-grabbing p-1" title="Drag to reorder on desktop">
+              <i data-lucide="grip-vertical" class="w-4 h-4"></i>
+            </button>
+            <span class="font-mono text-xs sm:text-sm font-bold text-slate-400 w-6 text-center">
+              #${globalIdx + 1}
+            </span>
+            <!-- Mobile Chevrons -->
+            <div class="flex flex-col gap-0.5">
+              <button onclick="event.stopPropagation(); shiftItem(${globalIdx}, -1)" ${globalIdx === 0 ? 'disabled class="opacity-20 text-slate-600"' : 'class="hover:text-orange-400 text-slate-400"'} title="Move Up">
+                <i data-lucide="chevron-up" class="w-3.5 h-3.5"></i>
+              </button>
+              <button onclick="event.stopPropagation(); shiftItem(${globalIdx}, 1)" ${globalIdx === marathonData.length - 1 ? 'disabled class="opacity-20 text-slate-600"' : 'class="hover:text-orange-400 text-slate-400"'} title="Move Down">
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Middle: Information & Badge -->
+          <div class="flex-1 min-w-0" onclick="openDrawer('${item.id}')">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md border ${getBadgeStyle(item.category)}">
+                ${item.category}
+              </span>
+              <span class="text-xs text-slate-400 font-mono">
+                ${item.epRange}
+              </span>
+              ${item.userNotes ? '<span class="inline-flex items-center text-cyan-400 text-[11px] font-medium"><i data-lucide="file-text" class="w-3 h-3 mr-0.5"></i> Note</span>' : ''}
+            </div>
+            <h3 class="text-sm sm:text-base font-semibold text-slate-100 truncate mt-1 ${isFullyWatched ? 'line-through text-slate-400' : ''}">
+              ${item.title}
+            </h3>
+            <p class="text-xs text-slate-400 line-clamp-1 mt-0.5">
+              ${item.description || 'Custom entry.'}
+            </p>
+          </div>
+
+          <!-- Right: Progress Count & Direct Toggle -->
+          <div class="flex items-center gap-2.5 sm:gap-3 flex-shrink-0" onclick="event.stopPropagation()">
+            <!-- Direct Drawer Trigger Counter -->
+            <button onclick="openDrawer('${item.id}')" class="text-right hover:opacity-80 transition hidden sm:block">
+              <span class="text-xs font-mono font-bold ${isFullyWatched ? 'text-emerald-400' : isPartial ? 'text-orange-400' : 'text-slate-400'}">
+                ${watchedCount}/${item.totalEpisodes}
+              </span>
+              <span class="block text-[10px] text-slate-500 uppercase">Watched</span>
+            </button>
+
+            <!-- Complete Toggle Check -->
+            <button onclick="quickToggleComplete('${item.id}')" class="w-8 h-8 rounded-lg flex items-center justify-center border transition ${isFullyWatched ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : isPartial ? 'bg-orange-500/10 border-orange-500/50 text-orange-400' : 'border-bleach-border text-slate-600 hover:border-slate-400 hover:text-slate-300'}" title="Toggle Complete">
+              <i data-lucide="${isFullyWatched ? 'check-check' : isPartial ? 'minus' : 'check'}" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `;
+
+        attachDragEvents(card);
+        container.appendChild(card);
+      });
+
+      lucide.createIcons();
+    }
+
+    // Move single item up or down
+    window.shiftItem = function(index, dir) {
+      const target = index + dir;
+      if (target < 0 || target >= marathonData.length) return;
+      const moved = marathonData.splice(index, 1)[0];
+      marathonData.splice(target, 0, moved);
+      saveState();
+      renderList();
+      showToast(`Position updated: #${target + 1}`);
+    };
+
+    // Quick full arc completion
+    window.quickToggleComplete = function(id) {
+      const item = marathonData.find(i => i.id === id);
+      if (!item) return;
+
+      const isAllDone = item.episodesList.every(e => e.watched);
+      const newStatus = !isAllDone;
+
+      item.episodesList.forEach(e => e.watched = newStatus);
+      item.isComplete = newStatus;
+
+      saveState();
+      renderList();
+      showToast(newStatus ? `Completed: ${item.title}` : `Marked Unwatched: ${item.title}`);
+    };
+
+    // Drag-and-drop handles
+    function attachDragEvents(card) {
+      card.addEventListener('dragstart', (e) => {
+        draggedItemId = card.dataset.id;
+        card.classList.add('dragging-card');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+
+      card.addEventListener('dragend', () => {
+        card.classList.remove('dragging-card');
+        document.querySelectorAll('.drag-over-card').forEach(el => el.classList.remove('drag-over-card'));
+      });
+
+      card.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        card.classList.add('drag-over-card');
+      });
+
+      card.addEventListener('dragleave', () => {
+        card.classList.remove('drag-over-card');
+      });
+
+      card.addEventListener('drop', (e) => {
+        e.preventDefault();
+        card.classList.remove('drag-over-card');
+        const targetId = card.dataset.id;
+        if (!draggedItemId || draggedItemId === targetId) return;
+
+        const fromIdx = marathonData.findIndex(i => i.id === draggedItemId);
+        const toIdx = marathonData.findIndex(i => i.id === targetId);
+
+        if (fromIdx !== -1 && toIdx !== -1) {
+          const [moved] = marathonData.splice(fromIdx, 1);
+          marathonData.splice(toIdx, 0, moved);
+          saveState();
+          renderList();
+          showToast(`Reordered to slot #${toIdx + 1}`);
+        }
+      });
+    }
+
+    // Preset Ordering Engine
+    function loadPreset(presetKey) {
+      switch (presetKey) {
+        case 'suggested':
+          marathonData.sort((a, b) => (a.suggestedOrder || 99) - (b.suggestedOrder || 99));
+          showToast('Loaded: ⭐ Suggested Master Chronology');
+          break;
+        case 'canon-first':
+          marathonData.sort((a, b) => (a.canonFirstOrder || 99) - (b.canonFirstOrder || 99));
+          showToast('Loaded: Canon First (Pure Storyline)');
+          break;
+        case 'broadcast':
+          marathonData.sort((a, b) => (a.broadcastOrder || 99) - (b.broadcastOrder || 99));
+          showToast('Loaded: TV Broadcast Air Order');
+          break;
+      }
+      saveState();
+      renderList();
+    }
+
+    // Episode Drawer Checklist
+    window.openDrawer = function(id) {
+      const item = marathonData.find(i => i.id === id);
+      if (!item) return;
+
+      activeDrawerId = id;
+
+      document.getElementById('drawerTitle').innerText = item.title;
+      document.getElementById('drawerEpisodesRange').innerText = item.epRange;
+      document.getElementById('drawerEpisodesCount').innerText = `${item.totalEpisodes} ${item.totalEpisodes === 1 ? 'Unit / Movie' : 'Episodes'}`;
+      
+      const runtimeMins = (item.category === 'Movie') ? (item.totalEpisodes * 92) : (item.totalEpisodes * 23);
+      const runtimeHours = (runtimeMins / 60).toFixed(1);
+      document.getElementById('drawerEstDuration').innerText = `~${runtimeHours} hrs total runtime`;
+      
+      document.getElementById('drawerDescription').innerText = item.description || 'No description provided.';
+      document.getElementById('drawerUserNote').value = item.userNotes || '';
+
+      const badge = document.getElementById('drawerBadge');
+      badge.className = `text-[10px] font-bold px-2 py-0.5 rounded border ${getBadgeStyle(item.category)}`;
+      badge.innerText = item.category;
+
+      renderDrawerList(item);
+
+      const overlay = document.getElementById('drawerOverlay');
+      const panel = document.getElementById('drawerPanel');
+      overlay.classList.remove('hidden');
+      setTimeout(() => {
+        overlay.classList.remove('opacity-0');
+        panel.classList.remove('translate-x-full');
+      }, 10);
+
+      lucide.createIcons();
+    };
+
+    function closeDrawer() {
+      const overlay = document.getElementById('drawerOverlay');
+      const panel = document.getElementById('drawerPanel');
+      panel.classList.add('translate-x-full');
+      overlay.classList.add('opacity-0');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        activeDrawerId = null;
+      }, 300);
+    }
+
+    function renderDrawerList(item) {
+      const checklistContainer = document.getElementById('drawerChecklist');
+      checklistContainer.innerHTML = '';
+
+      if (!item.episodesList || item.episodesList.length === 0) {
+        item.episodesList = Array.from({ length: item.totalEpisodes }, (_, i) => ({
+          num: (item.startEp ? item.startEp + i : i + 1),
+          watched: item.isComplete || false
+        }));
+      }
+
+      const watchedCount = item.episodesList.filter(e => e.watched).length;
+      document.getElementById('drawerCompletedRatio').innerText = `${watchedCount} / ${item.totalEpisodes} Watched`;
+
+      item.episodesList.forEach((ep) => {
+        const row = document.createElement('label');
+        row.className = `flex items-center justify-between p-2 rounded-lg border cursor-pointer transition ${ep.watched ? 'bg-emerald-950/20 border-emerald-900/50 text-slate-200' : 'bg-bleach-black/50 border-bleach-border text-slate-400 hover:bg-slate-800/40'}`;
+
+        const isMovieOrSpecial = item.category === 'Movie' || item.category === 'Special';
+        const labelText = isMovieOrSpecial ? `${item.title}` : `Episode ${ep.num}`;
+
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <input type="checkbox" class="accent-orange-500 w-4 h-4 rounded cursor-pointer" ${ep.watched ? 'checked' : ''}>
+            <span class="text-xs font-mono font-medium">${labelText}</span>
+          </div>
+          <span class="text-[10px] font-mono ${ep.watched ? 'text-emerald-400 font-semibold' : 'text-slate-600'}">
+            ${ep.watched ? 'Watched' : 'Unwatched'}
+          </span>
+        `;
+
+        const checkbox = row.querySelector('input');
+        checkbox.addEventListener('change', () => {
+          ep.watched = checkbox.checked;
+          item.isComplete = item.episodesList.every(e => e.watched);
+          saveState();
+          renderList();
+          renderDrawerList(item);
+        });
+
+        checklistContainer.appendChild(row);
+      });
+    }
+
+    // Custom Card Creator
+    function saveCustomEntry() {
+      const title = document.getElementById('customTitle').value.trim();
+      const count = parseInt(document.getElementById('customEpCount').value, 10) || 1;
+      const category = document.getElementById('customCategory').value;
+      const desc = document.getElementById('customDesc').value.trim();
+
+      if (!title) {
+        showToast('Please specify a title');
+        return;
+      }
+
+      const newEntry = {
+        id: `custom_${Date.now()}`,
+        title: title,
+        epRange: `${count} ${count === 1 ? 'Unit' : 'Episodes'}`,
+        startEp: 1,
+        endEp: count,
+        totalEpisodes: count,
+        category: category,
+        description: desc || 'Custom watch session.',
+        suggestedOrder: 999,
+        canonFirstOrder: 999,
+        broadcastOrder: 999,
+        userNotes: '',
+        isComplete: false,
+        episodesList: Array.from({ length: count }, (_, i) => ({
+          num: i + 1,
+          watched: false
+        }))
+      };
+
+      marathonData.push(newEntry);
+      saveState();
+      renderList();
+      document.getElementById('customModal').classList.add('hidden');
+      showToast(`Added custom entry: ${title}`);
+    }
+
+    // Export & Import
+    function exportJSON() {
+      const payload = {
+        app: "BleachMasterMarathonPlanner",
+        timestamp: new Date().toISOString(),
+        dailyPace: dailyPace,
+        items: marathonData
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bleach_marathon_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast("Data backup file exported!");
+    }
+
+    function importJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const parsed = JSON.parse(evt.target.result);
+          if (Array.isArray(parsed.items)) {
+            marathonData = parsed.items;
+            if (parsed.dailyPace) dailyPace = parsed.dailyPace;
+            document.getElementById('paceSlider').value = dailyPace;
+            saveState();
+            renderList();
+            showToast("Marathon progress restored successfully!");
+          } else {
+            alert("Invalid backup JSON format.");
+          }
+        } catch (err) {
+          alert("Could not parse JSON file.");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    // Notification toast
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMessage').innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2500);
+    }
+
+    // Initialization & Event Bindings
+    window.addEventListener('DOMContentLoaded', () => {
+      initData();
+      renderList();
+
+      // Pace Slider
+      const paceSlider = document.getElementById('paceSlider');
+      paceSlider.value = dailyPace;
+      paceSlider.addEventListener('input', (e) => {
+        dailyPace = parseInt(e.target.value, 10);
+        saveState();
+      });
+
+      // Filter Tabs
+      document.querySelectorAll('.filter-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.filter-tab').forEach(b => {
+            b.className = 'filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-bleach-card hover:bg-bleach-cardHover text-slate-300 border border-bleach-border transition';
+          });
+          btn.className = 'filter-tab px-3 py-1.5 rounded-lg text-xs font-semibold bg-orange-500 text-white shadow-sm transition';
+          currentFilter = btn.dataset.filter;
+          renderList();
+        });
+      });
+
+      // Preset Order Buttons
+      document.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          loadPreset(btn.dataset.preset);
+        });
+      });
+
+      // Search Field
+      const searchInput = document.getElementById('searchInput');
+      const clearSearchBtn = document.getElementById('clearSearch');
+
+      searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        if (searchQuery) {
+          clearSearchBtn.classList.remove('hidden');
+        } else {
+          clearSearchBtn.classList.add('hidden');
+        }
+        renderList();
+      });
+
+      clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchQuery = '';
+        clearSearchBtn.classList.add('hidden');
+        renderList();
+      });
+
+      // Drawer Events
+      document.getElementById('closeDrawer').addEventListener('click', closeDrawer);
+      document.getElementById('drawerSaveClose').addEventListener('click', closeDrawer);
+      document.getElementById('drawerOverlay').addEventListener('click', (e) => {
+        if (e.target.id === 'drawerOverlay') closeDrawer();
+      });
+
+      document.getElementById('markAllWatched').addEventListener('click', () => {
+        if (!activeDrawerId) return;
+        const item = marathonData.find(i => i.id === activeDrawerId);
+        if (item) {
+          item.episodesList.forEach(e => e.watched = true);
+          item.isComplete = true;
+          saveState();
+          renderList();
+          renderDrawerList(item);
+        }
+      });
+
+      document.getElementById('markAllUnwatched').addEventListener('click', () => {
+        if (!activeDrawerId) return;
+        const item = marathonData.find(i => i.id === activeDrawerId);
+        if (item) {
+          item.episodesList.forEach(e => e.watched = false);
+          item.isComplete = false;
+          saveState();
+          renderList();
+          renderDrawerList(item);
+        }
+      });
+
+      document.getElementById('drawerUserNote').addEventListener('input', (e) => {
+        if (!activeDrawerId) return;
+        const item = marathonData.find(i => i.id === activeDrawerId);
+        if (item) {
+          item.userNotes = e.target.value;
+          saveState();
+        }
+      });
+
+      // Custom Entry Modal
+      document.getElementById('addCustomBtn').addEventListener('click', () => {
+        document.getElementById('customModal').classList.remove('hidden');
+        document.getElementById('customTitle').value = '';
+        document.getElementById('customEpCount').value = '1';
+        document.getElementById('customDesc').value = '';
+      });
+
+      document.getElementById('closeCustomModal').addEventListener('click', () => {
+        document.getElementById('customModal').classList.add('hidden');
+      });
+      document.getElementById('cancelCustomBtn').addEventListener('click', () => {
+        document.getElementById('customModal').classList.add('hidden');
+      });
+      document.getElementById('saveCustomBtn').addEventListener('click', saveCustomEntry);
+
+      // Export / Import / Reset
+      document.getElementById('exportBtn').addEventListener('click', exportJSON);
+      document.getElementById('importInput').addEventListener('change', importJSON);
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        if (confirm("Reset watch progress and revert back to the Suggested Master Chronology?")) {
+          localStorage.removeItem(STORAGE_KEY);
+          initData();
+          renderList();
+          showToast("Reset to master default state");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
